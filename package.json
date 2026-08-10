@@ -1,0 +1,39 @@
+{
+  "name": "local-deck-ai",
+  "version": "0.1.0",
+  "description": "Generate PowerPoint presentations from documents using local LLMs and Ollama.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "bin": {
+    "local-deck-ai": "dist/cli/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "generate": "tsx src/cli/index.ts generate",
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/cli/index.js generate"
+  },
+  "keywords": [
+    "ollama",
+    "local-llm",
+    "powerpoint",
+    "pptx",
+    "presentation",
+    "slides",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pptxgenjs": "^3.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
