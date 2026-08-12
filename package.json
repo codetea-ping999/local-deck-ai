@@ -5,6 +5,15 @@
   "type": "module",
   "private": false,
   "license": "MIT",
+  "files": [
+    "dist",
+    "public",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "local-deck-ai": "dist/cli/index.js"
   },

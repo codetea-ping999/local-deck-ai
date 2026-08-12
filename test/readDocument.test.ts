@@ -31,7 +31,7 @@ test("readDocument rejects empty, unsupported, missing, and oversized files", as
   await assert.rejects(readDocument(empty), (error: unknown) => error instanceof DocumentError && error.code === "EMPTY");
 
   const unsupported = await tempFile("source.pdf", "content");
-  await assert.rejects(readDocument(unsupported), (error: unknown) => error instanceof DocumentError && error.code === "UNSUPPORTED");
+  await assert.rejects(readDocument(unsupported), (error: unknown) => error instanceof DocumentError && error.code === "PARSE_FAILED");
 
   await assert.rejects(readDocument("does-not-exist.md"), (error: unknown) =>
     error instanceof DocumentError && error.code === "READ_FAILED" && error.message.includes("does-not-exist.md")

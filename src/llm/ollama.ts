@@ -14,6 +14,15 @@ export type GenerateClient = {
   generate(options: OllamaGenerateOptions): Promise<string>;
 };
 
+export type OllamaEmbedOptions = {
+  model: string;
+  input: string | string[];
+};
+
+export type EmbedClient = {
+  embed(options: OllamaEmbedOptions): Promise<number[][]>;
+};
+
 export class OllamaError extends Error {
   constructor(
     message: string,
@@ -148,4 +157,59 @@ export class OllamaClient {
 
     return data.response;
   }
+
+  async embed(options: OllamaEmbedOptions): Promise<number[][]> {
+    const inputs = Array.isArray(options.input) ? options.input : [options.input];
+    if (!options.model.trim()) throw new OllamaError("Embedding model must not be empty.");
+    if (inputs.length === 0 || inputs.some((input) => !input.trim())) throw new OllamaError("Embedding input must not be empty.");
+
+    const modern = await this.requestJson(`${this.host}/api/embed`, { model: options.model, input: options.input });
+    if (modern.response.ok) {
+      const data = modern.data as { embeddings?: unknown; embedding?: unknown };
+      const vectors = normalizeEmbeddings(data.embeddings ?? data.embedding);
+      if (vectors.length === 0) throw new OllamaError(`Ollama returned an empty embedding for model "${options.model}".`);
+      return vectors;
+    }
+    if (modern.response.status !== 404 && modern.response.status !== 405) {
+      throw await this.httpError("Ollama embedding request", modern.response, options.model);
+    }
+
+    const vectors: number[][] = [];
+    for (const input of inputs) {
+      const legacy = await this.requestJson(`${this.host}/api/embeddings`, { model: options.model, prompt: input });
+      if (!legacy.response.ok) throw await this.httpError("Ollama embedding request", legacy.response, options.model);
+      const data = legacy.data as { embedding?: unknown };
+      const vector = normalizeEmbeddings(data.embedding)[0];
+      if (!vector) throw new OllamaError(`Ollama returned an empty embedding for model "${options.model}".`);
+      vectors.push(vector);
+    }
+    return vectors;
+  }
+
+  private async requestJson(url: string, body: unknown): Promise<{ response: Response; data: unknown }> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+    let response: Response;
+    try {
+      response = await fetch(url, { method: "POST", signal: controller.signal, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    } catch (error) {
+      clearTimeout(timeout);
+      throw new OllamaError(error instanceof Error && error.name === "AbortError" ? `Ollamaへのリクエストがタイムアウトしました: ${this.host}` : `Ollama に接続できません: ${this.host}`, undefined, "ollama serve を実行し、ホストURLを確認してください。");
+    }
+    clearTimeout(timeout);
+    if (!response.ok) return { response, data: undefined };
+    try { return { response, data: await response.json() }; }
+    catch { throw new OllamaError(`Ollama returned invalid JSON from ${new URL(url).pathname}.`, response.status); }
+  }
+
+  private async httpError(operation: string, response: Response, model: string): Promise<OllamaError> {
+    const body = await response.text().catch(() => "");
+    return new OllamaError(`${operation} failed: ${response.status} ${response.statusText}${body ? `\n${body}` : ""}`, response.status, response.status === 404 ? `モデル「${model}」が見つかりません。ollama pull ${model} を実行してください。` : undefined);
+  }
+}
+
+function normalizeEmbeddings(value: unknown): number[][] {
+  if (Array.isArray(value) && value.every((item) => typeof item === "number")) return [value as number[]];
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is number[] => Array.isArray(item) && item.every((component) => typeof component === "number"));
 }

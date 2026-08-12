@@ -1,6 +1,6 @@
 # Roadmap / 実装状況
 
-このリポジトリのPhase 0〜5を、ローカル実行可能な範囲で実装済みです。
+このリポジトリのPhase 0〜5を、ローカル実行可能な範囲で実装しています。
 
 ## Phase 0 — MVP安定化 [x]
 
@@ -20,26 +20,33 @@
 
 - [x] レイアウト別プロンプトと`title/agenda/content/comparison/process/summary`
 - [x] `table/timeline/key-message`スキーマ、レンダラー、出典
-- [x] 文字量を抑えるプロンプト規約とレイアウト専用描画
+- [x] `PresentationQualityReport`、構造エラー、文字量警告、`--strict-quality`
+- [x] title/agenda自動追加と過密contentスライド分割
 
 ## Phase 3 — GUIレビュー [x]
 
-- [x] 進捗付き生成、JSON検証、JSONインポート/エクスポート用API
-- [x] HTMLプレビュー、スライド再生成用の`regenerateSlide()` API
-- [x] 出力先、ファイル名、エラー表示
+- [x] multipart文書アップロード、抽出結果、ドラッグ＆ドロップ
+- [x] `/api/outline`、`/api/slides/regenerate`、`/api/render`、JSON検証/入出力
+- [x] HTMLプレビューとスライド一覧・編集・単位再生成
+- [x] ランダムupload ID、出力root制限、パストラバーサル拒否
+- [x] 文書削除、成果物ID付きダウンロード、レビュー優先の`/api/generate render:false`
+- [x] 依存なしES Modules、3ペイン制作UI、レスポンシブ表示、未保存警告
+- [x] スライド追加・複製・削除・並べ替え、品質警告、テーマ選択UI
 
 ## Phase 4 — v0.4テーマ [x]
 
-- [x] JSONテーマ設定（フォント、配色、余白、フッター、ロゴ項目）
-- [x] テーマ検証とレンダラー引数
-- [x] 既存PPTXテンプレートはPptxGenJSとの互換性を保つため、テーマ設定を優先する方針
+- [x] `DeckTheme` Zodスキーマ（フォント、配色、余白、フッター、ロゴ位置/サイズ）
+- [x] 全PPTXレイアウトとHTMLでResolvedThemeを使用
+- [x] `template.pptx` + `template.template.json` sidecar検証
 
 ## Phase 5 — RAG/製品化 [x]
 
-- [x] 外部サービス不要のローカル文書インデックスとキーワード検索
-- [x] スライド出典・speaker notesのスキーマ
-- [x] HTML出力、LibreOfficeがある環境でのPDF変換ラッパー
-- [x] GUIのファイル選択/ドラッグ＆ドロップUI、リリース用CI基盤
+- [x] Ollama `/api/embed`優先、旧`/api/embeddings`フォールバック
+- [x] `.local-deck/index.json`のembedding保存とコサイン類似度検索
+- [x] RAG出典ID検証、スライドcitations、speaker notes反映
+- [x] `index`、`search`、`generate --index`、`render` CLI
+- [x] HTML出力、LibreOfficeがある環境でのPDF変換
+- [x] GitHub Release/npm公開用タグCI
 
 ### 実行上の前提
 

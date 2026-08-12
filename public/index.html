@@ -1,8 +1,63 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Local Deck AI</title><link rel="stylesheet" href="/style.css"></head>
-<body><main><header><div class="eyebrow">LOCAL DECK AI</div><h1>文書からPowerPointを作成</h1><p>文書はローカルのOllamaにだけ送信されます。</p></header>
-<section class="card"><label>入力ファイル <input id="file" type="file" accept=".md,.markdown,.mdx,.txt,.pdf,.docx"></label><textarea id="content" placeholder="Markdownまたはテキストを貼り付けることもできます"></textarea>
-<div class="grid"><label>Ollamaホスト<input id="host" value="http://localhost:11434"></label><label>モデル<select id="model"><option>読み込み中...</option></select></label><button id="refresh" class="secondary">モデル一覧を更新</button><label>スライド枚数<input id="slides" type="number" min="1" max="40" value="8"></label><label>出力先<input id="output" value="output/deck.pptx"></label></div>
-<div class="actions"><button id="generate">PowerPointを作成</button><span id="status">準備完了</span></div></section>
-<section class="card"><h2>レビュー用JSON</h2><p>生成後の中間JSONを貼り付けて検証・HTMLプレビューに利用できます。</p><textarea id="json" placeholder="Presentation JSON"></textarea><button id="preview" class="secondary">HTMLプレビュー</button></section>
-<section class="card progress-card"><div class="progress-head"><strong>進捗</strong><span id="percent">0%</span></div><div class="bar"><i id="bar"></i></div><ol id="log"></ol></section></main><script src="/app.js"></script></body></html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10182d">
+  <title>Local Deck AI — Slide workspace</title>
+  <link rel="stylesheet" href="/style.css?v=studio-20260813">
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">✦</span><div><strong>Local Deck AI</strong><small>ローカルスライド制作ワークスペース</small></div></div>
+      <div class="topbar-actions"><span id="status" class="status" role="status" aria-live="polite">準備完了</span><button id="mobile-settings-toggle" class="icon-button mobile-only" aria-label="設定を開く">☰</button></div>
+    </header>
+
+    <main class="workspace-shell">
+      <aside id="mobile-settings" class="sidebar settings-panel" aria-label="生成設定">
+        <div class="panel-heading"><div><span class="eyebrow">SOURCE</span><h1>文書をスライドへ</h1></div><span class="privacy-badge">LOCAL ONLY</span></div>
+        <button id="drop" class="drop-zone" data-busy-control type="button"><span class="drop-icon">＋</span><strong>文書をドロップ</strong><small>PDF / DOCX / Markdown / TXT<br>複数ファイル対応・最大10 MiB</small><input id="file" type="file" multiple accept=".md,.markdown,.mdx,.txt,.text,.pdf,.docx"></button>
+        <div id="document-list" class="document-list" aria-live="polite"></div>
+        <label class="field"><span>貼り付け入力</span><textarea id="content" class="paste-input" placeholder="Markdownまたはテキストを貼り付けることもできます"></textarea></label>
+
+        <div class="divider"></div>
+        <div class="section-label"><span class="eyebrow">GENERATION</span><span class="section-hint">Ollama</span></div>
+        <label class="field"><span>ホスト</span><input id="host" value="http://localhost:11434" autocomplete="url"></label>
+        <div class="field-row"><label class="field"><span>モデル</span><select id="model"><option value="">モデルを確認中…</option></select></label><button id="refresh" class="icon-button refresh-button" data-busy-control title="モデル一覧を更新" aria-label="モデル一覧を更新">↻</button></div>
+        <div class="field-row"><label class="field"><span>スライド枚数</span><input id="slides" type="number" min="1" max="40" value="8"></label><div class="field"><span>品質基準</span><label class="check-field"><input id="strict-quality" type="checkbox"><span>厳密に検証</span></label></div></div>
+        <details class="advanced-settings"><summary>RAG検索の詳細設定</summary><label class="field"><span>検索クエリ</span><input id="query" placeholder="任意の検索語"></label><label class="field"><span>埋め込みモデル</span><input id="embedding-model" value="nomic-embed-text"></label></details>
+        <div class="primary-actions"><button id="outline" class="primary-button" data-busy-control>アウトラインを生成</button><button id="generate" class="secondary-button" data-busy-control>貼り付け内容から生成</button></div>
+        <p class="privacy-note">文書は外部サービスへ送信されません。生成にはローカルで起動したOllamaを使用します。</p>
+      </aside>
+
+      <section class="canvas-panel" aria-label="スライドプレビュー">
+        <div class="canvas-toolbar"><div><span class="eyebrow">REVIEW</span><h2>スライドレビュー</h2></div><div class="canvas-toolbar-actions"><span id="slide-count" class="counter">0枚</span><button class="toolbar-button" data-action="add-slide" data-busy-control>＋ 追加</button><button class="toolbar-button" data-action="duplicate-slide" data-busy-control>複製</button><button class="toolbar-button" data-action="delete-slide" data-busy-control>削除</button><button class="toolbar-button" data-action="undo" data-busy-control>Undo</button><button class="toolbar-button" data-action="redo" data-busy-control>Redo</button></div></div>
+        <div id="slide-canvas" class="slide-canvas" aria-live="polite"></div>
+        <div class="canvas-navigation"><button class="toolbar-button" data-action="move-up" data-busy-control>↑ 上へ</button><button class="toolbar-button" data-action="move-down" data-busy-control>↓ 下へ</button><span class="keyboard-hint">⌘/Ctrl + ↑↓ で並べ替え · ⌘/Ctrl + S で保存</span></div>
+        <div class="thumbnail-section"><div class="section-label"><span class="eyebrow">SLIDES</span><span class="section-hint">クリックして編集</span></div><div id="slide-list" class="slide-list"><p class="empty compact-empty">生成するとスライドが表示されます。</p></div></div>
+        <div class="progress-card"><div class="section-label"><span class="eyebrow">ACTIVITY</span><span class="section-hint">生成・出力の進捗</span></div><div id="progress"></div></div>
+      </section>
+
+      <aside class="sidebar inspector-panel" aria-label="スライド編集と出力">
+        <div class="panel-heading"><div><span class="eyebrow">INSPECTOR</span><h2>選択スライド</h2></div></div>
+        <div id="inspector" class="inspector"><div class="empty inspector-empty"><strong>スライドを選択してください</strong><span>中央のサムネイルから編集対象を選べます。</span></div></div>
+        <div class="divider"></div>
+        <div class="section-label"><span class="eyebrow">QUALITY</span><span class="section-hint">構造と文字量</span></div>
+        <div id="quality" class="quality-panel"></div>
+
+        <div class="divider"></div>
+        <div class="section-label"><span class="eyebrow">THEME</span><span class="section-hint">プレビューと出力</span></div>
+        <div class="theme-row"><div id="theme-status" class="theme-status"><span class="muted">デフォルトテーマ</span></div><button id="clear-theme" class="text-button">リセット</button></div>
+        <label class="file-button secondary-button"><span>テーマJSONを読み込む</span><input id="theme-file" type="file" accept="application/json,.json"></label>
+
+        <div class="divider"></div>
+        <div class="section-label"><span class="eyebrow">ARTIFACT</span><span class="section-hint">レビュー後に保存</span></div>
+        <div class="artifact-controls"><div class="field-row"><label class="field"><span>形式</span><select id="format"><option value="pptx">PPTX</option><option value="html">HTML</option><option value="pdf">PDF</option><option value="json">JSON</option></select></label><label class="field"><span>ファイル名</span><input id="output" value="deck.pptx"></label></div><div class="artifact-actions"><button id="render" class="primary-button" data-busy-control>ファイルを書き出す</button><button id="preview" class="secondary-button" data-busy-control>HTMLプレビュー</button></div><div id="artifact" class="artifact-result-wrap"></div></div>
+        <details class="json-panel"><summary>JSONを確認・編集</summary><textarea id="json" class="json-editor" spellcheck="false" placeholder="Presentation JSON"></textarea><div class="json-actions"><label class="file-button secondary-button"><span>JSONを読み込む</span><input id="json-file" type="file" accept="application/json,.json"></label><button id="json-apply" class="secondary-button">画面へ反映</button><button id="validate" class="secondary-button">検証</button><button id="export-json" class="secondary-button">JSON保存</button></div></details>
+      </aside>
+    </main>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -29,5 +29,11 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Smoke test
+        run: npm run smoke
+
       - name: Build
         run: npm run build
+
+      - name: Package dry run
+        run: npm pack --dry-run
