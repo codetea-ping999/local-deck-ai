@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Local Deck AI</title><link rel="stylesheet" href="/style.css"></head>
+<body><main><header><div class="eyebrow">LOCAL DECK AI</div><h1>文書からPowerPointを作成</h1><p>文書はローカルのOllamaにだけ送信されます。</p></header>
+<section class="card"><label>入力ファイル <input id="file" type="file" accept=".md,.markdown,.mdx,.txt,.pdf,.docx"></label><textarea id="content" placeholder="Markdownまたはテキストを貼り付けることもできます"></textarea>
+<div class="grid"><label>Ollamaホスト<input id="host" value="http://localhost:11434"></label><label>モデル<select id="model"><option>読み込み中...</option></select></label><button id="refresh" class="secondary">モデル一覧を更新</button><label>スライド枚数<input id="slides" type="number" min="1" max="40" value="8"></label><label>出力先<input id="output" value="output/deck.pptx"></label></div>
+<div class="actions"><button id="generate">PowerPointを作成</button><span id="status">準備完了</span></div></section>
+<section class="card"><h2>レビュー用JSON</h2><p>生成後の中間JSONを貼り付けて検証・HTMLプレビューに利用できます。</p><textarea id="json" placeholder="Presentation JSON"></textarea><button id="preview" class="secondary">HTMLプレビュー</button></section>
+<section class="card progress-card"><div class="progress-head"><strong>進捗</strong><span id="percent">0%</span></div><div class="bar"><i id="bar"></i></div><ol id="log"></ol></section></main><script src="/app.js"></script></body></html>

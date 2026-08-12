@@ -22,6 +22,8 @@ renderPresentationToPptx()
 .pptx file
 ```
 
+Long documents are split into bounded chunks and summarized before the final prompt. PDF/DOCX parsing is provided by replaceable parser adapters. The intermediate schema now carries table, timeline, key-message, citations, and theme-compatible rendering metadata. GUI review helpers can validate/import/export JSON, regenerate one slide, and create HTML previews; the local RAG module persists a small keyword index without a cloud service.
+
 ## Design principles
 
 ### 1. Keep documents local
@@ -53,6 +55,17 @@ This separation makes rendering more stable and easier to test.
 ### 3. Validate before rendering
 
 Generated JSON is parsed and validated with Zod before any PowerPoint file is written. Invalid LLM output should fail loudly so the prompt or schema can be improved.
+
+### 3.1 Error boundaries and test seams
+
+The pipeline has explicit error boundaries:
+
+- `readDocument()` reports input read, empty, unsupported-format, and size-limit errors.
+- `OllamaClient` reports connection, timeout, HTTP, and malformed-response errors through `OllamaError`.
+- `generatePresentation()` extracts and validates JSON, retrying invalid JSON at most once before reporting both parse failures.
+- The renderer runs only after schema validation succeeds.
+
+`generatePresentation()` depends on the `GenerateClient` interface rather than directly on `OllamaClient`. Tests inject a small mock with a `generate()` method, so unit tests do not require Ollama to be running. The PPTX renderer is covered separately by a file-output smoke test.
 
 ### 4. Add richer capabilities behind interfaces
 

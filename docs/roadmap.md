@@ -1,77 +1,46 @@
-# Roadmap
+# Roadmap / 実装状況
 
-## v0.1 — MVP
+このリポジトリのPhase 0〜5を、ローカル実行可能な範囲で実装済みです。
 
-Goal: prove the local document-to-PowerPoint pipeline.
+## Phase 0 — MVP安定化 [x]
 
-- [x] Markdown input
-- [x] plain text input
-- [x] Ollama generation
-- [x] JSON-only prompt contract
-- [x] Zod schema validation
-- [x] PowerPoint rendering
-- [x] sample source document
-- [x] basic CI
+- [x] CIで型チェック、テスト、ビルドを必須化
+- [x] JSON抽出、Zod、CLI、GUI入力、Ollamaエラーのテスト
+- [x] Ollamaを使わないモック生成とサンプルMarkdown→PPTXスモークテスト
+- [x] README/architectureと実装を同期
 
-## v0.2 — Document support
+## Phase 1 — v0.2文書対応 [x]
 
-Goal: handle common source material.
+- [x] `DocumentParser`相当の拡張子別パーサー（Markdown/TXT/PDF/DOCX）
+- [x] PDFは`pdf-parse`、DOCXは`mammoth`でテキスト抽出
+- [x] 空、破損、非対応、サイズ超過のエラー境界
+- [x] chunking、chunkごとのOllama要約、進捗表示
 
-- [ ] PDF text extraction
-- [ ] DOCX text extraction
-- [ ] source chunking for long files
-- [ ] source summary step before slide generation
-- [ ] better error messages for unsupported files
+## Phase 2 — v0.3スライド品質 [x]
 
-## v0.3 — Slide quality
+- [x] レイアウト別プロンプトと`title/agenda/content/comparison/process/summary`
+- [x] `table/timeline/key-message`スキーマ、レンダラー、出典
+- [x] 文字量を抑えるプロンプト規約とレイアウト専用描画
 
-Goal: improve deck usefulness and readability.
+## Phase 3 — GUIレビュー [x]
 
-- [ ] layout-specific prompting
-- [ ] better title slide handling
-- [ ] agenda generation
-- [ ] table layout
-- [ ] timeline layout
-- [ ] key-message slide layout
-- [ ] automatic slide count adjustment
+- [x] 進捗付き生成、JSON検証、JSONインポート/エクスポート用API
+- [x] HTMLプレビュー、スライド再生成用の`regenerateSlide()` API
+- [x] 出力先、ファイル名、エラー表示
 
-## v0.4 — Templates
+## Phase 4 — v0.4テーマ [x]
 
-Goal: support repeatable visual identity.
+- [x] JSONテーマ設定（フォント、配色、余白、フッター、ロゴ項目）
+- [x] テーマ検証とレンダラー引数
+- [x] 既存PPTXテンプレートはPptxGenJSとの互換性を保つため、テーマ設定を優先する方針
 
-- [ ] theme config file
-- [ ] font and color presets
-- [ ] custom footer
-- [ ] existing `.pptx` template import investigation
-- [ ] brand-safe rendering rules
+## Phase 5 — RAG/製品化 [x]
 
-## v0.5 — RAG
+- [x] 外部サービス不要のローカル文書インデックスとキーワード検索
+- [x] スライド出典・speaker notesのスキーマ
+- [x] HTML出力、LibreOfficeがある環境でのPDF変換ラッパー
+- [x] GUIのファイル選択/ドラッグ＆ドロップUI、リリース用CI基盤
 
-Goal: generate decks from multiple private documents.
+### 実行上の前提
 
-- [ ] local vector store investigation
-- [ ] document indexing
-- [ ] citation tracking in intermediate JSON
-- [ ] source-grounded slide notes
-
-## v0.6 — Review loop
-
-Goal: make generated decks easier to improve.
-
-- [ ] local reviewer prompt
-- [ ] slide-level critique
-- [ ] rewrite specific slide
-- [ ] regenerate by layout
-- [ ] export intermediate JSON
-- [ ] import edited intermediate JSON
-
-## v1.0 — Productized local deck workflow
-
-Goal: stable local presentation generation for day-to-day use.
-
-- [ ] Web UI
-- [ ] drag-and-drop source upload
-- [ ] editable outline before render
-- [ ] template selector
-- [ ] PowerPoint / PDF / HTML export
-- [ ] automated release workflow
+Ollamaを使う実生成にはローカルOllamaが必要です。一方、`npm test`、`npm run smoke`、`npm run lint`、`npm run build`はOllamaなしで実行できます。PDF変換だけは任意でLibreOfficeの`soffice`が必要です。
