@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import { validateGenerateRequest } from "../src/gui/server.js";
 
 test("GUI request validation accepts a valid request", () => {
-  const request = validateGenerateRequest({ content: "# Source", model: "qwen3:8b", slides: 8, output: "C:\\temp\\deck.pptx" });
+  const request = validateGenerateRequest({ content: "# Source", model: "qwen3:8b", slides: 8, output: join(tmpdir(), "deck.pptx") });
   assert.equal(request.model, "qwen3:8b");
   assert.equal(request.slides, 8);
 });
