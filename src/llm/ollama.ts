@@ -97,6 +97,7 @@ export class OllamaClient {
         prompt: options.prompt,
         stream: false,
         format: "json",
+        think: false,
         options: {
           temperature: options.temperature ?? 0.2
         }
