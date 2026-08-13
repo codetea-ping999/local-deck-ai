@@ -1,0 +1,10 @@
+node_modules/
+dist/
+output/
+.local-deck/
+.env
+.env.*
+.DS_Store
+*.log
+*.pptx
+!.gitkeep
