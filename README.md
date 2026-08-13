@@ -60,6 +60,7 @@ Common options:
 --format pptx|html|pdf     Output format. Default: pptx
 --output <path>            Output path
 --host <url>               Ollama host. Default: http://localhost:11434
+--timeout <seconds>        Ollama request timeout. Default: 600
 --slides <number>          Target slide count. Default: 8
 --theme <path>             Theme JSON path
 --template <path>          Template PPTX path with sidecar JSON
@@ -145,6 +146,7 @@ The test suite does not require Ollama. It covers JSON/schema validation, qualit
 ## Troubleshooting
 
 - `Ollama に接続できません`: run `ollama serve` and verify `--host`.
+- Ollama request timeout: a large local model may need longer than the default 600 seconds; retry with `--timeout 900` or a smaller model.
 - Model not found: run `local-deck-ai models`, then `ollama pull <model>`.
 - `Input document is too large`: split the document; the limit is 10 MiB.
 - PDF output error: install LibreOffice so `soffice` is on `PATH`.

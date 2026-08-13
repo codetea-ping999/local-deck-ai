@@ -7,13 +7,15 @@ import type { SourceDocument } from "../src/parser/readDocument.js";
 const document: SourceDocument = { path: "input.md", name: "input.md", kind: "markdown", content: "# Source" };
 
 test("parseArgs validates supported CLI options", () => {
-  const options = parseArgs(["generate", "input.md", "--model", "demo", "--slides", "4", "--output", "out.pptx"]);
+  const options = parseArgs(["generate", "input.md", "--model", "demo", "--timeout", "900", "--slides", "4", "--output", "out.pptx"]);
   assert.equal(options.command, "generate");
   assert.equal(options.input, "input.md");
   assert.equal(options.model, "demo");
+  assert.equal(options.timeout, 900);
   assert.equal(options.slides, 4);
   assert.equal(options.output, "out.pptx");
   assert.throws(() => parseArgs(["generate", "input.md", "--slides", "0"]), /between 1 and 40/);
+  assert.throws(() => parseArgs(["generate", "input.md", "--timeout", "4"]), /between 5 and 3600/);
   assert.throws(() => parseArgs(["generate", "input.md", "--unknown"]), /Unknown option/);
 });
 

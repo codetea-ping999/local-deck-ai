@@ -21,7 +21,7 @@
     "dev": "tsx src/cli/index.ts",
     "generate": "tsx src/cli/index.ts generate",
     "gui": "tsx src/cli/index.ts gui",
-    "test": "tsx --test \"test/**/*.test.ts\"",
+    "test": "tsx --test test/*.test.ts",
     "smoke": "tsx --test test/document-quality-smoke.test.ts",
     "build": "tsc -p tsconfig.json",
     "lint": "tsc -p tsconfig.json --noEmit",

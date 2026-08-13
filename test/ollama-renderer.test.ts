@@ -21,7 +21,7 @@ test("OllamaClient classifies connection, timeout, HTTP, and malformed responses
     globalThis.fetch = async (_input, init) => new Promise<Response>((_resolve, reject) => {
       init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
     });
-    await assert.rejects(new OllamaClient("http://example.test", 1).generate({ model: "m", prompt: "p" }), (error: unknown) => error instanceof OllamaError && error.message.includes("タイムアウト"));
+    await assert.rejects(new OllamaClient("http://example.test", 1).generate({ model: "m", prompt: "p" }), (error: unknown) => error instanceof OllamaError && error.message.includes("タイムアウト") && error.hint?.includes("--timeout"));
   } finally {
     globalThis.fetch = originalFetch;
   }

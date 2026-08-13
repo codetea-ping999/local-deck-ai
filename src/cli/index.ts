@@ -21,6 +21,7 @@ export type CliOptions = {
   embeddingModel: string;
   output: string;
   host: string;
+  timeout: number;
   slides: number;
   topK: number;
   port: number;
@@ -35,7 +36,7 @@ async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   if (options.command === "gui") { startGuiServer(options.port); return; }
   if (options.command === "models") {
-    const models = await new OllamaClient(options.host).listModels();
+    const models = await new OllamaClient(options.host, options.timeout * 1000).listModels();
     if (models.length === 0) console.log("モデルが見つかりません。ollama pull <model> で追加してください。"); else models.forEach((model) => console.log(model.name));
     return;
   }
@@ -44,7 +45,7 @@ async function main(): Promise<void> {
   if (options.command === "render") { await renderJson(options); return; }
   if (options.command !== "generate" || (!options.input && !options.index)) { printHelp(); process.exit(options.command ? 1 : 0); }
 
-  const client = new OllamaClient(options.host);
+  const client = new OllamaClient(options.host, options.timeout * 1000);
   let document: SourceDocument;
   let retrievalContext: string | undefined;
   let retrievedSources: Array<{ id: string; source: string; text: string; pageStart?: number; pageEnd?: number }> | undefined;
@@ -81,7 +82,7 @@ async function indexDocuments(options: CliOptions): Promise<void> {
   if (options.inputs.length === 0) throw new Error("index requires one or more input files.");
   const documents = await Promise.all(options.inputs.map((input) => readDocument(resolve(input))));
   console.log(`• Embedding ${documents.length} documents with ${options.embeddingModel}`);
-  const index = await createEmbeddingIndex(documents, { client: new OllamaClient(options.host), model: options.embeddingModel });
+  const index = await createEmbeddingIndex(documents, { client: new OllamaClient(options.host, options.timeout * 1000), model: options.embeddingModel });
   const path = resolve(options.index ?? ".local-deck/index.json");
   await saveLocalIndex(index, path);
   console.log(`✓ Index saved: ${path} (${index.chunks.length} chunks, ${index.dimensions} dimensions)`);
@@ -91,7 +92,7 @@ async function searchDocuments(options: CliOptions): Promise<void> {
   if (!options.index) throw new Error("search requires --index <path>.");
   if (!options.query?.trim()) throw new Error("search requires a query.");
   const index = await loadLocalIndex(resolve(options.index));
-  const hits = await searchEmbeddingIndex(index, options.query, new OllamaClient(options.host), options.topK);
+  const hits = await searchEmbeddingIndex(index, options.query, new OllamaClient(options.host, options.timeout * 1000), options.topK);
   if (hits.length === 0) { console.log("No matching source chunks."); return; }
   hits.forEach((hit, index) => console.log(`[S${index + 1}] ${hit.source}${hit.pageStart ? ` p.${hit.pageStart}` : ""} (${hit.score.toFixed(4)})\n${hit.text}\n`));
 }
@@ -106,7 +107,7 @@ async function renderJson(options: CliOptions): Promise<void> {
 }
 
 export function parseArgs(args: string[]): CliOptions {
-  const options: CliOptions = { inputs: [], model: "qwen3:8b", embeddingModel: "nomic-embed-text", output: "output/deck.pptx", host: "http://localhost:11434", slides: 8, topK: 5, port: 4173, format: "pptx", strictQuality: false };
+  const options: CliOptions = { inputs: [], model: "qwen3:8b", embeddingModel: "nomic-embed-text", output: "output/deck.pptx", host: "http://localhost:11434", timeout: 600, slides: 8, topK: 5, port: 4173, format: "pptx", strictQuality: false };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (!arg) continue;
@@ -133,6 +134,7 @@ function applyOption(options: CliOptions, key: string, value: string): void {
     case "embedding-model": options.embeddingModel = value; break;
     case "output": options.output = value; break;
     case "host": options.host = value; break;
+    case "timeout": options.timeout = parseBoundedNumber(value, 5, 3_600, "--timeout"); break;
     case "index": options.index = value; break;
     case "query": options.query = value; break;
     case "theme": options.theme = value; break;
@@ -174,6 +176,7 @@ Options:
   --format pptx|html|pdf     Output format. Default: pptx
   --output <path>            Output path
   --host <url>               Ollama host. Default: http://localhost:11434
+  --timeout <seconds>        Ollama request timeout. Default: 600
   --slides <number>          Target slide count. Default: 8
   --theme <path>             Theme JSON path
   --template <path>          Template PPTX path with .template.json sidecar

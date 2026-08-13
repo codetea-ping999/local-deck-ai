@@ -35,7 +35,7 @@ export class OllamaError extends Error {
 }
 
 export class OllamaClient {
-  constructor(private readonly host = "http://localhost:11434", private readonly timeoutMs = 120_000) {}
+  constructor(private readonly host = "http://localhost:11434", private readonly timeoutMs = 600_000) {}
 
   async listModels(): Promise<OllamaModel[]> {
     const controller = new AbortController();
@@ -106,10 +106,12 @@ export class OllamaClient {
       clearTimeout(timeout);
       throw new OllamaError(
         error instanceof Error && error.name === "AbortError"
-          ? `Ollamaへのリクエストがタイムアウトしました: ${this.host}`
+          ? `Ollamaへのリクエストが${Math.round(this.timeoutMs / 1000)}秒でタイムアウトしました: ${this.host}`
           : `Ollama に接続できません: ${this.host}`,
         undefined,
-        "ollama serve を実行し、ホストURLを確認してください。"
+        error instanceof Error && error.name === "AbortError"
+          ? "モデルの応答に時間がかかっています。--timeout を長くするか、より小さいモデルを選択してください。"
+          : "ollama serve を実行し、ホストURLを確認してください。"
       );
     }
     clearTimeout(timeout);
@@ -194,7 +196,12 @@ export class OllamaClient {
       response = await fetch(url, { method: "POST", signal: controller.signal, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     } catch (error) {
       clearTimeout(timeout);
-      throw new OllamaError(error instanceof Error && error.name === "AbortError" ? `Ollamaへのリクエストがタイムアウトしました: ${this.host}` : `Ollama に接続できません: ${this.host}`, undefined, "ollama serve を実行し、ホストURLを確認してください。");
+      const timedOut = error instanceof Error && error.name === "AbortError";
+      throw new OllamaError(
+        timedOut ? `Ollamaへのリクエストが${Math.round(this.timeoutMs / 1000)}秒でタイムアウトしました: ${this.host}` : `Ollama に接続できません: ${this.host}`,
+        undefined,
+        timedOut ? "モデルの応答に時間がかかっています。--timeout を長くするか、より小さいモデルを選択してください。" : "ollama serve を実行し、ホストURLを確認してください。"
+      );
     }
     clearTimeout(timeout);
     if (!response.ok) return { response, data: undefined };
