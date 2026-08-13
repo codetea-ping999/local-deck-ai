@@ -23,17 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npm run lint
-
-      - name: Test
-        run: npm test
-
-      - name: Smoke test
-        run: npm run smoke
-
-      - name: Build
-        run: npm run build
-
-      - name: Package dry run
-        run: npm pack --dry-run
+      - name: Verification harness
+        run: npm run verify

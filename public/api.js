@@ -1,9 +1,16 @@
-import { errorMessage } from './utils.js';
+import { errorMessage, formatJsonParseError } from './utils.js';
 
 async function parseResponse(response) {
   const type = response.headers.get('content-type') ?? '';
-  if (type.includes('application/json')) return response.json();
-  return response.text();
+  const text = await response.text();
+  if (type.includes('application/json')) {
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      throw new Error(formatJsonParseError(text, error, 'JSON応答'));
+    }
+  }
+  return text;
 }
 
 async function requestJson(url, options = {}) {
@@ -56,7 +63,12 @@ export async function generatePresentation(payload, onEvent) {
   let result = null;
   const consume = (line) => {
     if (!line.trim()) return;
-    const event = JSON.parse(line);
+    let event;
+    try {
+      event = JSON.parse(line);
+    } catch (error) {
+      throw new Error(formatJsonParseError(line, error, '生成サーバーの応答'));
+    }
     onEvent?.(event);
     if (event.type === 'error') throw new Error(`${event.error}${event.hint ? `\nヒント: ${event.hint}` : ''}`);
     if (event.type === 'done') result = event;
