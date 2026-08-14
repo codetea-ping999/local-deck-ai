@@ -143,6 +143,10 @@ npm pack --dry-run
 
 The test suite does not require Ollama. It covers JSON/schema validation, quality adjustment, document parsing, embedding fallback and vector search, GUI request validation, theme/template checks, rendering, and mock generation. Tag pushes matching `v*.*.*` run the same checks, create `.tar.gz` and `.zip` CLI archives, publish a GitHub Release, and publish the package using `NPM_TOKEN`.
 
+### PptxGenJS security pin
+
+`pptxgenjs` is temporarily resolved to immutable commit `2ea5bafc5a1260c108c7200f6a36519bb6d35bd7` from upstream [PR #1473](https://github.com/gitbrent/PptxGenJS/pull/1473). The commit removes its unused `image-size` runtime dependency, for which the two current high-severity advisories have no patched release. It is a PptxGenJS 4.0.1 source pin, so the full test suite and representative PPTX smoke test are required before release. Replace this URL with the first upstream npm release that includes the same change, then rerun `npm audit --omit=dev` and the full verification suite.
+
 ## Troubleshooting
 
 - `Ollama に接続できません`: run `ollama serve` and verify `--host`.

@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtemp, stat } from "node:fs/promises";
+import { mkdtemp, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { OllamaClient, OllamaError } from "../src/llm/ollama.js";
 import { renderPresentationToPptx } from "../src/renderer/pptx.js";
+import { defaultTheme } from "../src/theme/theme.js";
 
 test("OllamaClient disables thinking for structured presentation output", async () => {
   const originalFetch = globalThis.fetch;
@@ -50,4 +51,20 @@ test("renderPresentationToPptx writes a non-empty PowerPoint file", async () => 
   const outputStat = await stat(output);
   assert.ok(outputStat.size > 0);
   assert.equal(output.endsWith(".pptx"), true);
+});
+
+test("renderPresentationToPptx supports a PNG theme logo", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "local-deck-ai-logo-"));
+  const logoPath = join(directory, "logo.png");
+  const output = join(directory, "deck.pptx");
+  await writeFile(logoPath, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/epv2AAAAABJRU5ErkJggg==", "base64"));
+
+  await renderPresentationToPptx(
+    { title: "Deck", slides: [{ title: "One", layout: "content", bullets: ["A"] }] },
+    output,
+    undefined,
+    { ...defaultTheme, logo: { path: logoPath, x: 11.5, y: 6.75, w: 1, h: 0.35 } }
+  );
+
+  assert.ok((await stat(output)).size > 0);
 });
