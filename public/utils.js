@@ -25,11 +25,31 @@ export function errorMessage(error) {
   return String(error ?? 'Unknown error');
 }
 
+export function formatJsonParseError(value, error, label = 'JSON') {
+  const message = errorMessage(error);
+  const source = String(value ?? '');
+  const match = /position (\d+)/i.exec(message);
+  if (!match) {
+    return `${label}を読み込めません: ${message}`;
+  }
+
+  const position = Number(match[1]);
+  const radius = 40;
+  const start = Math.max(0, position - radius);
+  const end = Math.min(source.length, position + radius);
+  const before = source.slice(start, position);
+  const current = source.slice(position, position + 1);
+  const after = source.slice(position + 1, end);
+  const snippet = `${before}${current ? `⟦${current}⟧` : ''}${after}`.replace(/\s+/g, ' ').trim();
+  return `${label}を読み込めません: ${message}${snippet ? `\n周辺: ${snippet}` : ''}`;
+}
+
 export function parseJson(value, label = 'JSON') {
+  const source = typeof value === 'string' ? value : String(value ?? '');
   try {
-    return JSON.parse(value);
+    return JSON.parse(source);
   } catch (error) {
-    throw new Error(`${label}を読み込めません: ${errorMessage(error)}`);
+    throw new Error(formatJsonParseError(source, error, label));
   }
 }
 
