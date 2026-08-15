@@ -134,14 +134,10 @@ The quality layer adds a title slide when missing, creates an agenda for decks o
 ## Development and CI
 
 ```bash
-npm run lint
-npm test
-npm run build
-npm run smoke
-npm pack --dry-run
+npm run verify
 ```
 
-The test suite does not require Ollama. It covers JSON/schema validation, quality adjustment, document parsing, embedding fallback and vector search, GUI request validation, theme/template checks, rendering, and mock generation. Tag pushes matching `v*.*.*` run the same checks, create `.tar.gz` and `.zip` CLI archives, publish a GitHub Release, and publish the package using `NPM_TOKEN`.
+`npm run verify` is the canonical local/CI harness: type check, test suite, mock document-to-PPTX smoke test, build, and package dry run. During iteration, the individual commands (`lint`, `test`, `smoke`, and `build`) remain available. The test suite does not require Ollama. It covers JSON/schema validation, quality adjustment, document parsing, embedding fallback and vector search, GUI request validation, theme/template checks, rendering, and mock generation. See [AGENTS.md](AGENTS.md) and [docs/agent-development.md](docs/agent-development.md) for the agent development loop. Tag pushes matching `v*.*.*` run the same checks, create `.tar.gz` and `.zip` CLI archives, publish a GitHub Release, and publish the package using `NPM_TOKEN`.
 
 ### PptxGenJS security pin
 
