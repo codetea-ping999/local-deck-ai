@@ -44,7 +44,7 @@
     "mammoth": "^1.12.1",
     "pdf-parse": "^2.4.5",
     "pptxgenjs": "https://codeload.github.com/otcaveuni-dev/PptxGenJS/tar.gz/2ea5bafc5a1260c108c7200f6a36519bb6d35bd7",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -8,8 +8,8 @@ const PlaceholderSchema = z.object({ x: z.number().min(0).optional(), y: z.numbe
 const TemplateLayoutSchema = z.object({ templateLayout: z.union([z.string(), z.number()]).optional(), placeholders: z.object({ title: PlaceholderSchema.optional(), subtitle: PlaceholderSchema.optional(), body: PlaceholderSchema.optional(), notes: PlaceholderSchema.optional() }).default({}) });
 export const TemplateDefinitionSchema = z.object({
   templatePath: z.string().optional(),
-  layouts: z.record(SlideLayoutSchema, TemplateLayoutSchema).optional(),
-  slideTypes: z.record(SlideLayoutSchema, TemplateLayoutSchema).optional()
+  layouts: z.partialRecord(SlideLayoutSchema, TemplateLayoutSchema).optional(),
+  slideTypes: z.partialRecord(SlideLayoutSchema, TemplateLayoutSchema).optional()
 });
 export type TemplateLayout = z.infer<typeof TemplateLayoutSchema>;
 export type TemplateDefinition = z.infer<typeof TemplateDefinitionSchema> & { templatePath: string };
